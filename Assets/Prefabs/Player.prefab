@@ -147,7 +147,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &709002395178716158
 Transform:
   m_ObjectHideFlags: 0
@@ -386,13 +386,14 @@ MonoBehaviour:
   playerNameText: {fileID: 7032734599139445308}
   playerNameObj: {fileID: 9138198744310258137}
   weaponArray:
+  - {fileID: 0}
   - {fileID: 8981202888701022035}
   - {fileID: 3317580923207051898}
   movementSpeed: 4
   rotationSpeed: 110
   playerName: 
   playerColor: {r: 1, g: 1, b: 1, a: 1}
-  activeWeaponSynced: 1
+  activeWeaponSynced: 0
 --- !u!1 &8981202888701022035
 GameObject:
   m_ObjectHideFlags: 0
@@ -410,7 +411,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &2343682337138038984
 Transform:
   m_ObjectHideFlags: 0
