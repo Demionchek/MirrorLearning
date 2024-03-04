@@ -65,7 +65,7 @@ public class PlayerScript : NetworkBehaviour {
     void Awake()
     {
         //allow all players to run this
-        sceneScript = GameObject.FindObjectOfType<SceneScript>();
+        sceneScript = GameObject.Find("SceneReference").GetComponent<SceneReference>().sceneScript;
         
         // disable all weapons
         foreach (var item in weaponArray)
