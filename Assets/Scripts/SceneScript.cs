@@ -7,13 +7,14 @@ using UnityEngine.UI;
 public class SceneScript : NetworkBehaviour
 {
     public Text canvasStatusText;
+    public Text canvasAmmoText;
     public PlayerScript playerScript;
     public SceneReference sceneReference;
     
     [SyncVar(hook = nameof(OnStatusTextChanged))]
     public string statusText;
 
-    void OnStatusTextChanged(string _Old, string _New)
+    private void OnStatusTextChanged(string oldText, string newText)
     {
         //called from sync var hook, to update info on screen for all players
         canvasStatusText.text = statusText;
@@ -23,6 +24,11 @@ public class SceneScript : NetworkBehaviour
     {
         if (playerScript != null)  
             playerScript.CmdSendPlayerMessage();
+    }
+    
+    public void UIAmmo(int _value)
+    {
+        canvasAmmoText.text = "Ammo: " + _value;
     }
     
     public void ButtonChangeScene()

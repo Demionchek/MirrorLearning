@@ -25,6 +25,9 @@ public class PlayerScript : NetworkBehaviour {
     private Material playerMaterial;
     private Renderer playerRenderer;
     private SceneScript sceneScript;
+    private Weapon activeWeapon;
+
+    private float weaponCooldownTime;
     
     private int selectedWeaponLocal = 1;
 
@@ -71,6 +74,12 @@ public class PlayerScript : NetworkBehaviour {
         foreach (var item in weaponArray)
             if (item != null)
                 item.SetActive(false);
+        
+        if (selectedWeaponLocal < weaponArray.Length && weaponArray[selectedWeaponLocal] != null)
+        {
+            activeWeapon = weaponArray[selectedWeaponLocal].GetComponent<Weapon>();
+            sceneScript.UIAmmo(activeWeapon.weaponAmmo);
+        }
     }
 
     void OnWeaponChanged(int _Old, int _New)
@@ -82,8 +91,15 @@ public class PlayerScript : NetworkBehaviour {
     
         // enable new weapon
         // in range and not null
-        if (0 < _New && _New < weaponArray.Length && weaponArray[_New] != null)
+        if (0 < _New && _New < weaponArray.Length && weaponArray[_New] != null) {
+            
             weaponArray[_New].SetActive(true);
+            activeWeapon = weaponArray[activeWeaponSynced].GetComponent<Weapon>();
+            
+            if (isLocalPlayer && activeWeapon != null)
+                sceneScript.UIAmmo(activeWeapon.weaponAmmo);
+        }
+        
     }
 
     public void OnNameChanged(string oldName, string newName) {
@@ -127,5 +143,30 @@ public class PlayerScript : NetworkBehaviour {
 
             CmdChangeActiveWeapon(selectedWeaponLocal);
         }
+        
+        if (Input.GetButtonDown("Fire1") ) //Fire1 is mouse 1st click
+        {
+            if (activeWeapon && Time.time > weaponCooldownTime && activeWeapon.weaponAmmo > 0)
+            {
+                weaponCooldownTime = Time.time + activeWeapon.weaponCooldown;
+                activeWeapon.weaponAmmo -= 1;
+                sceneScript.UIAmmo(activeWeapon.weaponAmmo);
+                CmdShootRay();
+            }
+        }
+    }
+    
+    [Command]
+    void CmdShootRay()
+    {
+        RpcFireWeapon();
+    }
+
+    [ClientRpc]
+    void RpcFireWeapon()
+    {
+        GameObject bullet = Instantiate(activeWeapon.weaponBullet, activeWeapon.weaponFirePosition.position, activeWeapon.weaponFirePosition.rotation);
+        bullet.GetComponent<Rigidbody>().velocity = bullet.transform.forward * activeWeapon.weaponSpeed;
+        Destroy(bullet, activeWeapon.weaponLife);
     }
 }
