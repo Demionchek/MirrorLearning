@@ -7,28 +7,29 @@ using UnityEngine;
 public class PlayerScript : NetworkBehaviour
 {
 
+    [Header("References")]
     public TextMesh playerNameText;
     public GameObject playerNameObj;
     public GameObject[] weaponArray;
     public Renderer playerRenderer;
     public Transform cameraPivot;
 
+    [Space(10)]
+
+    [Header("Controlls")]
     public float movementSpeed = 4f;
-    public float rotationSpeed = 110f;
+    public float rotationSpeedY = 10f;
+    public float rotationSpeedX = 10f;
+    public LayerMask groundLayers;
 
-    [Tooltip("How far in degrees can you move the camera up")]
-    public float TopClamp = 70.0f;
 
-    [Tooltip("How far in degrees can you move the camera down")]
-    public float BottomClamp = -30.0f;
-
-    [SyncVar(hook = nameof(OnNameChanged))]
+    [HideInInspector, SyncVar(hook = nameof(OnNameChanged))]
     public string playerName;
 
-    [SyncVar(hook = nameof(OnColorChanged))]
+    [HideInInspector, SyncVar(hook = nameof(OnColorChanged))]
     public Color playerColor = Color.white;
 
-    [SyncVar(hook = nameof(OnWeaponChanged))]
+    [HideInInspector, SyncVar(hook = nameof(OnWeaponChanged))]
     public int activeWeaponSynced = 1;
 
     private Material playerMaterial;
@@ -36,9 +37,15 @@ public class PlayerScript : NetworkBehaviour
     private Weapon activeWeapon;
     private CharacterController characterController;
 
+    private Vector3 verticalVelocity;
+
     private float weaponCooldownTime;
+    public float groundedOffset = -0.14f;
 
     private int selectedWeaponLocal = 1;
+    private bool isGrounded;
+    private float gravityModyfier = 2;
+    private float terminalVelocity = -50f;
 
     [Command]
     public void CmdSendPlayerMessage()
@@ -146,14 +153,14 @@ public class PlayerScript : NetworkBehaviour
             return;
         }
 
+        LookInput();
         Movement();
         AttackInput();
     }
 
     private void FixedUpdate() {
         if (!isLocalPlayer) return;
-
-        LookInput();
+        GroundedCheck();
     }
 
     private void LookInput() {
@@ -162,14 +169,14 @@ public class PlayerScript : NetworkBehaviour
 
         Vector3 currPivotRotation = cameraPivot.transform.rotation.eulerAngles;
 
-        currPivotRotation.y += mouseInputX;
-        currPivotRotation.x += mouseInputY;
+        currPivotRotation.y += mouseInputX * rotationSpeedX;
 
-        // clamp our rotations so our values are limited 360 degrees
-        // mouseInputX = ClampAngle( mouseInputX, float.MinValue, float.MaxValue);
-        // mouseInputY = ClampAngle(mouseInputY, BottomClamp, TopClamp);
+        transform.rotation = Quaternion.Euler(0, currPivotRotation.y, 0);
+
+        currPivotRotation.x += mouseInputY * rotationSpeedY;
 
         cameraPivot.transform.rotation = Quaternion.Euler(currPivotRotation);
+        
     }
 
     private void AttackInput()
@@ -198,19 +205,33 @@ public class PlayerScript : NetworkBehaviour
 
     private void Movement()
     {
-        float moveX = Input.GetAxis("Horizontal") * Time.deltaTime * rotationSpeed;
-        float moveZ = Input.GetAxis("Vertical") * Time.deltaTime * movementSpeed;
+        float inputX = Input.GetAxis("Horizontal") * Time.deltaTime * movementSpeed;
+        float inputZ = Input.GetAxis("Vertical") * Time.deltaTime * movementSpeed;
 
-        Vector3 moveDir = new Vector3(moveX, 0, moveZ);
+
+        if (isGrounded) {
+            verticalVelocity = new Vector3(0,-2f,0);
+        } else {
+            if (verticalVelocity.y < terminalVelocity)
+            {
+                verticalVelocity += -Physics.gravity * gravityModyfier * Time.deltaTime;
+            }
+        }
+
+        Vector3 moveDir = cameraPivot.transform.forward * inputZ + cameraPivot.transform.right * inputX;
 
         characterController.Move(moveDir);
-        transform.Rotate(0, moveX, 0);
-        transform.Translate(0, 0, moveZ);
+    }
+
+    private void GroundedCheck()
+    {
+        float groundedRadius = characterController.radius - 0.1f;
+        Vector3 spherePosition = new Vector3(transform.position.x, transform.position.y - groundedOffset, transform.position.z);
+        isGrounded = Physics.CheckSphere(spherePosition, groundedRadius, groundLayers, QueryTriggerInteraction.Ignore);
     }
 
     [Command]
-    void CmdShootRay()
-    {
+    void CmdShootRay(){
         RpcFireWeapon();
     }
 
@@ -220,12 +241,5 @@ public class PlayerScript : NetworkBehaviour
         GameObject bullet = Instantiate(activeWeapon.weaponBullet, activeWeapon.weaponFirePosition.position, activeWeapon.weaponFirePosition.rotation);
         bullet.GetComponent<Rigidbody>().velocity = bullet.transform.forward * activeWeapon.weaponSpeed;
         Destroy(bullet, activeWeapon.weaponLife);
-    }
-
-    private static float ClampAngle(float lfAngle, float lfMin, float lfMax)
-    {
-        if (lfAngle < -360f) lfAngle += 360f;
-        if (lfAngle > 360f) lfAngle -= 360f;
-        return Mathf.Clamp(lfAngle, lfMin, lfMax);
     }
 }
