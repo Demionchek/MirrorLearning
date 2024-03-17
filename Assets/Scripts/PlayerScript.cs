@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Mirror;
@@ -46,12 +47,15 @@ public class PlayerScript : NetworkBehaviour
     private bool isGrounded;
     private float gravityModyfier = 2;
     private float terminalVelocity = -50f;
+    private float mouseInputX = 0.0f;
+    private float mouseInputY = 0.0f;
+
 
     [Command]
     public void CmdSendPlayerMessage()
     {
         if (sceneScript)
-            sceneScript.statusText = $"{playerName} says hello {Random.Range(10, 99)}";
+            sceneScript.statusText = $"{playerName} says hello {UnityEngine.Random.Range(10, 99)}";
     }
 
     [Command]
@@ -78,8 +82,8 @@ public class PlayerScript : NetworkBehaviour
         playerNameObj.transform.localPosition = new Vector3(0, -1f, 0.6f);
         playerNameObj.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
 
-        string name = "Player" + Random.Range(100, 999);
-        Color color = new Color(Random.Range(0f, 1f), Random.Range(0f, 1f), Random.Range(0f, 1f));
+        string name = "Player" + UnityEngine.Random.Range(100, 999);
+        Color color = new Color(UnityEngine.Random.Range(0f, 1f), UnityEngine.Random.Range(0f, 1f), UnityEngine.Random.Range(0f, 1f));
         CmdSetupPlayer(name, color);
     }
 
@@ -164,19 +168,14 @@ public class PlayerScript : NetworkBehaviour
     }
 
     private void LookInput() {
-        float mouseInputX = Input.GetAxis("Mouse X1");
-        float mouseInputY = Input.GetAxis("Mouse Y1");
+        mouseInputX += Input.GetAxis("Mouse X1") * rotationSpeedX;
+        mouseInputY -= Input.GetAxis("Mouse Y1") * rotationSpeedY;
 
-        Vector3 currPivotRotation = cameraPivot.transform.rotation.eulerAngles;
+        transform.rotation = Quaternion.Euler(0, mouseInputX, 0);
 
-        currPivotRotation.y += mouseInputX * rotationSpeedX;
+        mouseInputY = Math.Clamp(mouseInputY, -60, 40);
 
-        transform.rotation = Quaternion.Euler(0, currPivotRotation.y, 0);
-
-        currPivotRotation.x += mouseInputY * rotationSpeedY;
-
-        cameraPivot.transform.rotation = Quaternion.Euler(currPivotRotation);
-        
+        cameraPivot.transform.eulerAngles = new Vector3(mouseInputY, mouseInputX,0);
     }
 
     private void AttackInput()
@@ -209,16 +208,19 @@ public class PlayerScript : NetworkBehaviour
         float inputZ = Input.GetAxis("Vertical") * Time.deltaTime * movementSpeed;
 
 
-        if (isGrounded) {
+        if (isGrounded)
+        {
             verticalVelocity = new Vector3(0,-2f,0);
-        } else {
-            if (verticalVelocity.y < terminalVelocity)
+        }
+        else
+        {
+            if (verticalVelocity.y > terminalVelocity)
             {
-                verticalVelocity += -Physics.gravity * gravityModyfier * Time.deltaTime;
+                verticalVelocity += Physics.gravity * gravityModyfier * Time.deltaTime;
             }
         }
 
-        Vector3 moveDir = cameraPivot.transform.forward * inputZ + cameraPivot.transform.right * inputX;
+        Vector3 moveDir = transform.forward * inputZ + cameraPivot.transform.right * inputX + verticalVelocity;
 
         characterController.Move(moveDir);
     }
@@ -231,7 +233,8 @@ public class PlayerScript : NetworkBehaviour
     }
 
     [Command]
-    void CmdShootRay(){
+    void CmdShootRay()
+    {
         RpcFireWeapon();
     }
 
@@ -241,5 +244,12 @@ public class PlayerScript : NetworkBehaviour
         GameObject bullet = Instantiate(activeWeapon.weaponBullet, activeWeapon.weaponFirePosition.position, activeWeapon.weaponFirePosition.rotation);
         bullet.GetComponent<Rigidbody>().velocity = bullet.transform.forward * activeWeapon.weaponSpeed;
         Destroy(bullet, activeWeapon.weaponLife);
+    }
+
+    private static float ClampAngle(float lfAngle, float lfMin, float lfMax)
+    {
+        if (lfAngle < -360f) lfAngle += 360f;
+        if (lfAngle > 360f) lfAngle -= 360f;
+        return Mathf.Clamp(lfAngle, lfMin, lfMax);
     }
 }

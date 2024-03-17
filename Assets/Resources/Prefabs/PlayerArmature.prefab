@@ -143,12 +143,15 @@ MonoBehaviour:
   playerRenderer: {fileID: 7140967195547557425}
   cameraPivot: {fileID: 4299693191218257813}
   movementSpeed: 4
-  rotationSpeed: 110
-  TopClamp: 70
-  BottomClamp: -30
+  rotationSpeedY: 10
+  rotationSpeedX: 10
+  groundLayers:
+    serializedVersion: 2
+    m_Bits: 512
   playerName: 
   playerColor: {r: 1, g: 1, b: 1, a: 1}
   activeWeaponSynced: 1
+  groundedOffset: -0.14
 --- !u!114 &4283297408474499559
 MonoBehaviour:
   m_ObjectHideFlags: 0
