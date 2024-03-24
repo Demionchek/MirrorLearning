@@ -37,7 +37,7 @@ public class PlayerScript : NetworkBehaviour
     private SceneScript sceneScript;
     private Weapon activeWeapon;
     private CharacterController characterController;
-
+    private NetworkAnimator networkAnimator;
     private Vector3 verticalVelocity;
 
     private float weaponCooldownTime;
@@ -79,6 +79,11 @@ public class PlayerScript : NetworkBehaviour
         Camera.main.transform.SetParent(cameraPivot);
         Camera.main.transform.localPosition = new Vector3(0, 0, -0.5f);
 
+        characterController = GetComponent<CharacterController>();
+        networkAnimator = GetComponent<NetworkAnimator>();
+
+        if (characterController == null) Debug.LogError("characterController is null!");
+
         playerNameObj.transform.localPosition = new Vector3(0, -1f, 0.6f);
         playerNameObj.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
 
@@ -92,9 +97,7 @@ public class PlayerScript : NetworkBehaviour
         //allow all players to run this
         sceneScript = GameObject.Find("SceneReference").GetComponent<SceneReference>().sceneScript;
 
-        characterController = GetComponent<CharacterController>();
-
-        if (characterController == null) Debug.LogError("characterController is null!");
+        gameObject.name = "Player" + UnityEngine.Random.Range(0,100);
 
         // disable all weapons
         foreach (var item in weaponArray)
@@ -158,13 +161,14 @@ public class PlayerScript : NetworkBehaviour
         }
 
         LookInput();
+        GroundedCheck();
         Movement();
         AttackInput();
     }
 
     private void FixedUpdate() {
         if (!isLocalPlayer) return;
-        GroundedCheck();
+        
     }
 
     private void LookInput() {
@@ -204,9 +208,16 @@ public class PlayerScript : NetworkBehaviour
 
     private void Movement()
     {
-        float inputX = Input.GetAxis("Horizontal") * Time.deltaTime * movementSpeed;
-        float inputZ = Input.GetAxis("Vertical") * Time.deltaTime * movementSpeed;
+        float inputX = Input.GetAxis("Horizontal");
+        float inputZ = Input.GetAxis("Vertical");
 
+        if (networkAnimator != null) {
+            networkAnimator.animator.SetFloat("InputFwd", inputZ);
+            networkAnimator.animator.SetFloat("InputRight", inputX);
+        }
+
+        inputX *= Time.deltaTime * movementSpeed;
+        inputZ *= Time.deltaTime * movementSpeed;
 
         if (isGrounded)
         {
@@ -220,9 +231,14 @@ public class PlayerScript : NetworkBehaviour
             }
         }
 
-        Vector3 moveDir = transform.forward * inputZ + cameraPivot.transform.right * inputX + verticalVelocity;
+        Vector3 moveDir = Vector3.ClampMagnitude(transform.forward * inputZ + cameraPivot.transform.right * inputX, movementSpeed);
 
-        characterController.Move(moveDir);
+        moveDir += verticalVelocity;
+
+        if (characterController != null)
+        {
+            characterController.Move(moveDir);
+        }
     }
 
     private void GroundedCheck()
