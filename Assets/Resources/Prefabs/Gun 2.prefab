@@ -46,7 +46,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e485d708270c98c4283fb9f0cd4501ea, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  weaponSpeed: 30
+  weaponSpeed: 15
   weaponLife: 3
   weaponCooldown: 1
   weaponAmmo: 6
@@ -151,7 +151,9 @@ PrefabInstance:
       propertyPath: m_Name
       value: shotgun_001
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 2849644033297354174, guid: f7a69565ab2ff984789da792b0969f4b, type: 3}
+    - {fileID: 4964742025952007781, guid: f7a69565ab2ff984789da792b0969f4b, type: 3}
   m_SourcePrefab: {fileID: 100100000, guid: f7a69565ab2ff984789da792b0969f4b, type: 3}
 --- !u!4 &7083558390096201913 stripped
 Transform:

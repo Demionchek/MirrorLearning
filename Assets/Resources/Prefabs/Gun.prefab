@@ -46,10 +46,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e485d708270c98c4283fb9f0cd4501ea, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  weaponSpeed: 15
+  weaponSpeed: 50
   weaponLife: 3
-  weaponCooldown: 1
-  weaponAmmo: 15
+  weaponCooldown: 0.1
+  weaponAmmo: 30
   weaponBullet: {fileID: 1575543432926490354, guid: eaedcc05a0283b14e937d10367d8effd,
     type: 3}
   weaponFirePosition: {fileID: 8948162244321798887}
@@ -151,7 +151,9 @@ PrefabInstance:
       propertyPath: m_Name
       value: rifle_001
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: -1280058959441750331, guid: c20daf91d2bce304c85fec03f5fafd3b, type: 3}
+    - {fileID: 5527063934811208959, guid: c20daf91d2bce304c85fec03f5fafd3b, type: 3}
   m_SourcePrefab: {fileID: 100100000, guid: c20daf91d2bce304c85fec03f5fafd3b, type: 3}
 --- !u!4 &4894545683550677625 stripped
 Transform:

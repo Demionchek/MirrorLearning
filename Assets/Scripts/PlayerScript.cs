@@ -43,7 +43,7 @@ public class PlayerScript : NetworkBehaviour
     private float weaponCooldownTime;
     public float groundedOffset = -0.14f;
 
-    private int selectedWeaponLocal = 1;
+    private int selectedWeaponLocal = 0;
     private bool isGrounded;
     private float gravityModyfier = 2;
     private float terminalVelocity = -50f;
@@ -111,19 +111,15 @@ public class PlayerScript : NetworkBehaviour
         }
     }
 
-    void OnWeaponChanged(int _Old, int _New)
+    void OnWeaponChanged(int oldIndex, int newIndex)
     {
-        // disable old weapon
-        // in range and not null
-        if (0 < _Old && _Old < weaponArray.Length && weaponArray[_Old] != null)
-            weaponArray[_Old].SetActive(false);
+        if (0 < oldIndex && oldIndex < weaponArray.Length && weaponArray[oldIndex] != null)
+            weaponArray[oldIndex].SetActive(false);
 
-        // enable new weapon
-        // in range and not null
-        if (0 < _New && _New < weaponArray.Length && weaponArray[_New] != null)
+
+        if (0 < newIndex && newIndex < weaponArray.Length && weaponArray[newIndex] != null)
         {
-
-            weaponArray[_New].SetActive(true);
+            weaponArray[newIndex].SetActive(true);
             activeWeapon = weaponArray[activeWeaponSynced].GetComponent<Weapon>();
 
             if (isLocalPlayer && activeWeapon != null)
@@ -186,10 +182,10 @@ public class PlayerScript : NetworkBehaviour
     {
         if (Input.GetButtonDown("Fire2"))
         {
-            selectedWeaponLocal += 1;
+            selectedWeaponLocal++;
 
-            if (selectedWeaponLocal > weaponArray.Length)
-                selectedWeaponLocal = 1;
+            if (selectedWeaponLocal > weaponArray.Length - 1)
+                selectedWeaponLocal = 0;
 
             CmdChangeActiveWeapon(selectedWeaponLocal);
         }
